@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}Template Laporan - IDX XBRL MVP{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-4">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">Buat Template</div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="create_template">
+                    {{ template_form.non_field_errors }}
+                    {% for field in template_form %}
+                        <div class="mb-3">
+                            <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.help_text %}
+                                <div class="form-text">{{ field.help_text }}</div>
+                            {% endif %}
+                            {% if field.errors %}
+                                <div class="text-danger small">{{ field.errors }}</div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                    <button class="btn btn-primary">Simpan Template</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-light">Daftar Template</div>
+            <div class="card-body">
+                {% if templates %}
+                    <div class="table-responsive">
+                        <table class="table table-bordered align-middle">
+                            <thead class="table-secondary">
+                            <tr>
+                                <th>Nama</th>
+                                <th>Slug</th>
+                                <th>Deskripsi</th>
+                                <th>Item</th>
+                                <th>Aksi</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for template in templates %}
+                                <tr>
+                                    <td class="fw-semibold">{{ template.name }}</td>
+                                    <td>{{ template.slug }}</td>
+                                    <td>{{ template.description|default:"-" }}</td>
+                                    <td>{{ template.items.count }}</td>
+                                    <td class="text-nowrap">
+                                        <a class="btn btn-sm btn-outline-primary"
+                                           href="{% url 'manage_template_detail' template.id %}">
+                                            Kelola Item
+                                        </a>
+                                        <form method="post" class="d-inline"
+                                              onsubmit="return confirm('Hapus template {{ template.name }} beserta itemnya?');">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="delete_template">
+                                            <input type="hidden" name="template_id" value="{{ template.id }}">
+                                            <button class="btn btn-sm btn-outline-danger">Hapus</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted mb-0">Belum ada template.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

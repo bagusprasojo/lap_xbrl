@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Daftar Emiten - IDX XBRL MVP{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <h2 class="mb-1">Daftar Emiten</h2>
+        <p class="text-muted mb-0">Cari emiten berdasarkan kode ticker atau nama perusahaan.</p>
+    </div>
+    <form method="get" class="d-flex gap-2">
+        <input type="text" name="q" class="form-control" placeholder="Cari emiten..." value="{{ query }}">
+        <button class="btn btn-primary" type="submit">Cari</button>
+    </form>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        {% if page_obj.object_list %}
+            <div class="table-responsive">
+                <table class="table table-bordered align-middle mb-0">
+                    <thead class="table-secondary">
+                    <tr>
+                        <th>EntityCode</th>
+                        <th>EntityName</th>
+                        <th>EntityMainIndustry</th>
+                        <th>Sector</th>
+                        <th>Subsector</th>
+                        <th>Industry</th>
+                        <th>Subindustry</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for company in page_obj %}
+                        <tr>
+                            <td>{{ company.entity_code|default:company.ticker }}</td>
+                            <td>{{ company.entity_name|default:company.name|default:"-" }}</td>
+                            <td>{{ company.entity_main_industry|default:"-" }}</td>
+                            <td>{{ company.sector|default:"-" }}</td>
+                            <td>{{ company.subsector|default:"-" }}</td>
+                            <td>{{ company.industry|default:"-" }}</td>
+                            <td>{{ company.subindustry|default:"-" }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-muted mb-0">Tidak ada emiten ditemukan.</p>
+        {% endif %}
+    </div>
+</div>
+
+{% if page_obj.paginator.num_pages > 1 %}
+    <nav class="mt-4" aria-label="Pagination">
+        <ul class="pagination justify-content-center">
+            <li class="page-item {% if not page_obj.has_previous %}disabled{% endif %}">
+                <a class="page-link"
+                   href="?q={{ query }}&page={{ page_obj.previous_page_number }}"
+                   aria-label="Sebelumnya">
+                    &laquo;
+                </a>
+            </li>
+            {% for page_num in page_obj.paginator.page_range %}
+                {% if page_num == page_obj.number %}
+                    <li class="page-item active"><span class="page-link">{{ page_num }}</span></li>
+                {% elif page_num >= page_obj.number|add:-2 and page_num <= page_obj.number|add:2 %}
+                    <li class="page-item">
+                        <a class="page-link" href="?q={{ query }}&page={{ page_num }}">{{ page_num }}</a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+            <li class="page-item {% if not page_obj.has_next %}disabled{% endif %}">
+                <a class="page-link"
+                   href="?q={{ query }}&page={{ page_obj.next_page_number }}"
+                   aria-label="Berikutnya">
+                    &raquo;
+                </a>
+            </li>
+        </ul>
+    </nav>
+{% endif %}
+{% endblock %}

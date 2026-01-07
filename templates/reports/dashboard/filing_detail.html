@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}Detail Upload - {{ filing }}{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="{% url 'upload_xbrl' %}" class="btn btn-link">&larr; Kembali ke daftar upload</a>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-primary text-white">
+        Ringkasan Filing
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <p><strong>Emiten:</strong> {{ filing.company.ticker }}</p>
+                <p><strong>Periode:</strong> {{ filing.period_label }}</p>
+                <p><strong>Periode Mulai:</strong> {{ filing.period_start|default:"-" }}</p>
+                <p><strong>Periode Akhir:</strong> {{ filing.period_end|default:"-" }}</p>
+                <p><strong>Tanggal Instant:</strong> {{ filing.instant_date|default:"-" }}</p>
+            </div>
+            <div class="col-md-6">
+                <p><strong>File:</strong> {{ filing.source_filename }}</p>
+                <p><strong>Diunggah:</strong> {{ filing.uploaded_at|date:"d M Y H:i" }}</p>
+                <p><strong>Total Fakta:</strong> {{ facts_page.paginator.count }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header bg-light d-flex flex-column flex-md-row gap-3 justify-content-between align-items-start align-items-md-center">
+        <span>Fakta XBRL</span>
+        <form method="get" class="d-flex gap-2 ms-md-auto w-100" style="max-width: 420px;">
+            <input type="hidden" name="page" value="1">
+            <input type="text" name="q" class="form-control" placeholder="Cari nama atau nilai"
+                   value="{{ search_query }}">
+            <button class="btn btn-outline-primary" type="submit">Cari</button>
+            {% if search_query %}
+                <a href="{% url 'filing_detail' filing.id %}" class="btn btn-outline-secondary">Reset</a>
+            {% endif %}
+        </form>
+    </div>
+    <div class="card-body table-responsive">
+        {% if facts_page %}
+            <table class="table table-sm table-bordered align-middle">
+                <thead class="table-secondary">
+                <tr>
+                    <th>#</th>
+                    <th>Nama</th>
+                    <th>Nilai</th>
+                    <th>Context</th>
+                    <th>Unit</th>
+                    <th>Decimals</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for fact in facts_page %}
+                    <tr>
+                        <td>{{ facts_page.start_index|add:forloop.counter0 }}</td>
+                        <td>{{ fact.name }}</td>
+                        <td>{{ fact.value }}</td>
+                        <td>{{ fact.context.context_id|default:"-" }}</td>
+                        <td>{{ fact.unit|default:"-" }}</td>
+                        <td>{{ fact.decimals|default:"-" }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
+                <p class="text-muted small mb-0">
+                    Menampilkan {{ facts_page.start_index }} - {{ facts_page.end_index }} dari {{ facts_page.paginator.count }} fakta.
+                </p>
+                <nav>
+                    <ul class="pagination mb-0">
+                        {% if facts_page.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ facts_page.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}">&laquo;</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+                        {% endif %}
+                        {% for num in facts_page.paginator.page_range %}
+                            {% if num == facts_page.number %}
+                                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                            {% elif num <= facts_page.number|add:2 and num >= facts_page.number|add:-2 %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}{% if search_query %}&q={{ search_query }}{% endif %}">{{ num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                        {% if facts_page.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ facts_page.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}">&raquo;</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+        {% else %}
+            <p class="text-muted mb-0">Tidak ada fakta yang tersimpan.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Beranda - IDX XBRL MVP{% endblock %}
+
+{% block content %}
+<section class="hero mb-5">
+    <div class="hero-content">
+        <span class="hero-kicker">IDX XBRL MVP</span>
+        <h1 class="hero-title">Laporan keuangan XBRL yang cepat, rapi, dan bisa dibandingkan.</h1>
+        <p class="hero-subtitle">
+            Pilih emiten, pilih periode, lalu lihat Neraca, Laba Rugi, dan Arus Kas dalam format
+            komparatif yang mudah dibaca.
+        </p>
+        <div class="d-flex flex-wrap gap-2">
+            <a class="btn btn-light btn-lg" href="{% url 'report_neraca' %}">Mulai dari Neraca</a>
+            <a class="btn btn-outline-light btn-lg" href="{% url 'report_laba_rugi' %}">Laba Rugi</a>
+            <a class="btn btn-outline-light btn-lg" href="{% url 'report_arus_kas' %}">Arus Kas</a>
+        </div>
+    </div>
+    <div class="hero-stats">
+        <div class="stat-card">
+            <div class="stat-value">{{ company_count }}</div>
+            <div class="stat-label">Emiten terdaftar</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ filing_count }}</div>
+            <div class="stat-label">Filing XBRL</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ template_count }}</div>
+            <div class="stat-label">Template laporan</div>
+        </div>
+    </div>
+</section>
+
+<section class="mb-5">
+    <div class="section-heading">
+        <h2 class="section-title">Tiga jalur laporan</h2>
+        <p class="section-subtitle">Pilih jenis laporan yang ingin dievaluasi terlebih dulu.</p>
+    </div>
+    <div class="row g-3">
+        <div class="col-md-4">
+            <a class="report-card" href="{% url 'report_neraca' %}">
+                <div class="report-card-title">Neraca</div>
+                <div class="report-card-desc">Gambaran posisi keuangan dan struktur aset/liabilitas.</div>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a class="report-card" href="{% url 'report_laba_rugi' %}">
+                <div class="report-card-title">Laba Rugi</div>
+                <div class="report-card-desc">Ringkasan performa pendapatan, beban, dan laba.</div>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a class="report-card" href="{% url 'report_arus_kas' %}">
+                <div class="report-card-title">Arus Kas</div>
+                <div class="report-card-desc">Pantau operasi, investasi, dan pendanaan.</div>
+            </a>
+        </div>
+    </div>
+</section>
+
+<section class="info-grid">
+    <div class="info-panel">
+        <h3 class="info-title">Cara kerja singkat</h3>
+        <ol class="info-list">
+            <li>Admin upload file XBRL emiten.</li>
+            <li>Fakta dan konteks tersimpan otomatis.</li>
+            <li>Pengguna publik memilih periode untuk membandingkan.</li>
+        </ol>
+    </div>
+    <div class="info-panel accent">
+        <h3 class="info-title">Butuh update data?</h3>
+        <p class="info-text">
+            Masuk sebagai admin untuk upload XBRL terbaru atau mengelola template laporan.
+        </p>
+        {% if user.is_authenticated %}
+            <a class="btn btn-dark" href="{% url 'upload_xbrl' %}">Ke Dashboard Upload</a>
+        {% else %}
+            <a class="btn btn-dark" href="{% url 'login' %}">Login Admin</a>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

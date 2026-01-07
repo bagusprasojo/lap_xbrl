@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Laporan Publik - IDX XBRL MVP{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label">Emiten</label>
+                <select name="company" class="form-select">
+                    {% for company in companies %}
+                        <option value="{{ company.id }}"
+                                {% if company == selected_company %}selected{% endif %}>
+                            {{ company.ticker }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Periode Utama</label>
+                <select name="primary" class="form-select">
+                    {% for filing in filings %}
+                        <option value="{{ filing.id }}"
+                                {% if filing == primary_filing %}selected{% endif %}>
+                            {{ filing.period_label }} ({{ filing.uploaded_at|date:"d M Y" }})
+                        </option>
+                    {% endfor %}
+                </select>
+                <div class="form-text">Wajib dipilih.</div>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Periode Pembanding (Opsional)</label>
+                <select name="comparison" class="form-select">
+                    <option value="">- Tidak ada -</option>
+                    {% for filing in filings %}
+                        <option value="{{ filing.id }}"
+                                {% if filing == comparison_filing %}selected{% endif %}>
+                            {{ filing.period_label }} ({{ filing.uploaded_at|date:"d M Y" }})
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12">
+                <button class="btn btn-primary">Tampilkan Laporan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if not primary_filing %}
+    <div class="alert alert-info">Belum ada laporan untuk emiten ini. Silakan unggah melalui panel admin.</div>
+{% else %}
+    {% for block in report_blocks %}
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">{{ block.template.name }}</h5>
+            </div>
+            <div class="card-body table-responsive">
+                <table class="table table-bordered align-middle">
+                    <thead class="table-secondary">
+                    <tr>
+                        <th style="width:30%">Item</th>
+                        <th>{{ primary_filing.period_label }}</th>
+                        <th>
+                            {% if comparison_filing %}
+                                {{ comparison_filing.period_label }}
+                            {% else %}
+                                Pembanding
+                            {% endif %}
+                        </th>
+                        <th>Selisih</th>
+                        <th>Selisih %</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for row in block.rows %}
+                        <tr>
+                            <td>{{ row.label }}</td>
+                            <td>{{ row.primary_value_display }}</td>
+                            <td>{{ row.comparison_value_display }}</td>
+                            <td>{{ row.delta_value_display }}</td>
+                            <td>{{ row.delta_percent_display }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                {% if not comparison_filing %}
+                    <p class="text-muted small mb-0">Data pembanding kosong. Kolom selisih disembunyikan otomatis.</p>
+                {% endif %}
+            </div>
+        </div>
+    {% empty %}
+        <div class="alert alert-info">Belum ada template laporan. Tambahkan template melalui panel admin.</div>
+    {% endfor %}
+{% endif %}
+{% endblock %}
