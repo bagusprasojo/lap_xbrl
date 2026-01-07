@@ -34,40 +34,107 @@
     </div>
     <div class="col-lg-6">
         <div class="card shadow-sm">
-            <div class="card-header bg-light">
-                Riwayat Upload Terbaru
+            <div class="card-header bg-light d-flex flex-wrap align-items-center justify-content-between gap-2">
+                <span>Riwayat Upload Terbaru</span>
+                <form method="get" class="d-flex gap-2">
+                    <input type="text" name="q" class="form-control form-control-sm"
+                           placeholder="Cari emiten/periode..." value="{{ query }}">
+                    <button class="btn btn-outline-primary btn-sm" type="submit">Cari</button>
+                </form>
             </div>
             <div class="card-body">
                 {% if latest_filings %}
-                    <ul class="list-group">
-                        {% for filing in latest_filings %}
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <div>
-                                    <strong>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered align-middle mb-0">
+                            <thead class="table-secondary">
+                            <tr>
+                                <th>Kode Emiten</th>
+                                <th>Periode Laporan</th>
+                                <th>Tgl Upload</th>
+                                <th>Aksi</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for filing in latest_filings %}
+                                <tr>
+                                    <td>
                                         <a href="{% url 'filing_detail' filing.id %}">
                                             {{ filing.company.ticker }}
                                         </a>
-                                    </strong><br>
-                                    <span class="text-muted">{{ filing.period_label }}</span>
-                                </div>
-                                <div class="text-end">
-                                    <small class="text-muted d-block">
-                                        {{ filing.uploaded_at|date:"d M Y H:i" }}
-                                    </small>
-                                    <form method="post" action="{% url 'delete_filing' filing.id %}">
-                                        {% csrf_token %}
-                                        <button
-                                            type="submit"
-                                            class="btn btn-sm btn-outline-danger mt-2"
-                                            onclick="return confirm('Hapus filing ini?');"
-                                        >
-                                            Hapus
-                                        </button>
-                                    </form>
-                                </div>
-                            </li>
-                        {% endfor %}
-                    </ul>
+                                    </td>
+                                    <td>{{ filing.period_label }}</td>
+                                    <td>{{ filing.uploaded_at|date:"d M Y H:i" }}</td>
+                                    <td class="text-nowrap">
+                                        <form method="post" action="{% url 'delete_filing' filing.id %}" class="d-inline">
+                                            {% csrf_token %}
+                                            <button
+                                                type="submit"
+                                                class="btn btn-sm btn-outline-danger"
+                                                onclick="return confirm('Hapus filing ini?');"
+                                            >
+                                                Hapus
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% if latest_filings.paginator.num_pages > 1 %}
+                        <nav class="mt-3" aria-label="Pagination">
+                            <ul class="pagination justify-content-center mb-0">
+                                <li class="page-item {% if latest_filings.number == 1 %}disabled{% endif %}">
+                                    {% if latest_filings.number != 1 %}
+                                        <a class="page-link" href="?q={{ query }}&page=1" aria-label="Halaman pertama">
+                                            &laquo;&laquo;
+                                        </a>
+                                    {% else %}
+                                        <span class="page-link" aria-label="Halaman pertama">&laquo;&laquo;</span>
+                                    {% endif %}
+                                </li>
+                                <li class="page-item {% if not latest_filings.has_previous %}disabled{% endif %}">
+                                    {% if latest_filings.has_previous %}
+                                        <a class="page-link" href="?q={{ query }}&page={{ latest_filings.previous_page_number }}"
+                                           aria-label="Sebelumnya">
+                                            &laquo;
+                                        </a>
+                                    {% else %}
+                                        <span class="page-link" aria-label="Sebelumnya">&laquo;</span>
+                                    {% endif %}
+                                </li>
+                                {% for page_num in latest_filings.paginator.page_range %}
+                                    {% if page_num == latest_filings.number %}
+                                        <li class="page-item active"><span class="page-link">{{ page_num }}</span></li>
+                                    {% elif page_num >= latest_filings.number|add:-2 and page_num <= latest_filings.number|add:2 %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?q={{ query }}&page={{ page_num }}">{{ page_num }}</a>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+                                <li class="page-item {% if not latest_filings.has_next %}disabled{% endif %}">
+                                    {% if latest_filings.has_next %}
+                                        <a class="page-link" href="?q={{ query }}&page={{ latest_filings.next_page_number }}"
+                                           aria-label="Berikutnya">
+                                            &raquo;
+                                        </a>
+                                    {% else %}
+                                        <span class="page-link" aria-label="Berikutnya">&raquo;</span>
+                                    {% endif %}
+                                </li>
+                                <li class="page-item {% if latest_filings.number == latest_filings.paginator.num_pages %}disabled{% endif %}">
+                                    {% if latest_filings.number != latest_filings.paginator.num_pages %}
+                                        <a class="page-link" href="?q={{ query }}&page={{ latest_filings.paginator.num_pages }}"
+                                           aria-label="Halaman terakhir">
+                                            &raquo;&raquo;
+                                        </a>
+                                    {% else %}
+                                        <span class="page-link" aria-label="Halaman terakhir">&raquo;&raquo;</span>
+                                    {% endif %}
+                                </li>
+                            </ul>
+                        </nav>
+                    {% endif %}
                 {% else %}
                     <p class="text-muted mb-0">Belum ada data.</p>
                 {% endif %}

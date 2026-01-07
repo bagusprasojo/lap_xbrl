@@ -112,20 +112,36 @@ class UploadXBRLView(LoginRequiredMixin, View):
 
     def get(self, request):
         form = XBRLUploadForm()
-        latest_filings = Filing.objects.select_related("company").order_by("-uploaded_at")[
-            :5
-        ]
+        query = request.GET.get("q", "").strip()
+        filings_qs = Filing.objects.select_related("company").order_by("-uploaded_at")
+        if query:
+            filings_qs = filings_qs.filter(
+                models.Q(company__ticker__icontains=query)
+                | models.Q(period_label__icontains=query)
+                | models.Q(company__name__icontains=query)
+            )
+        paginator = Paginator(filings_qs, 10)
+        page_number = request.GET.get("page")
+        latest_filings = paginator.get_page(page_number)
         return render(
             request,
             self.template_name,
-            {"form": form, "latest_filings": latest_filings},
+            {"form": form, "latest_filings": latest_filings, "query": query},
         )
 
     def post(self, request):
         form = XBRLUploadForm(request.POST, request.FILES)
-        latest_filings = Filing.objects.select_related("company").order_by("-uploaded_at")[
-            :5
-        ]
+        query = request.GET.get("q", "").strip()
+        filings_qs = Filing.objects.select_related("company").order_by("-uploaded_at")
+        if query:
+            filings_qs = filings_qs.filter(
+                models.Q(company__ticker__icontains=query)
+                | models.Q(period_label__icontains=query)
+                | models.Q(company__name__icontains=query)
+            )
+        paginator = Paginator(filings_qs, 10)
+        page_number = request.GET.get("page")
+        latest_filings = paginator.get_page(page_number)
 
         if form.is_valid():
             file_obj = form.cleaned_data["file"]
